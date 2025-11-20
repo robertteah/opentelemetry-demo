@@ -1,20 +1,25 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: frontend-proxy
+  name: frontend
   annotations:
-    alb.ingress.kubernetes.io/scheme: internet-facing
-    alb.ingress.kubernetes.io/target-type: ip
+    nginx.ingress.kubernetes.io/server-snippet: |
+          # Example: Redirect requests to a specific path to localhost internally
+          # This is illustrative and might not be a common use case for external Ingress.
+          # More often, you'd proxy to a different service/port.
+          if ($request_uri ~* "/internal-path") {
+            proxy_pass http://localhost:8080;
+          }
 spec:
-  ingressClassName: alb
+  ingressClassName: nginx
   rules:
-    - host: example.com
+    - host: otel.local
       http:
         paths:
-          - path: "/"
+          - path: "/frontend"
             pathType: Prefix
             backend:
               service:
-                name: opentelemetry-demo-frontendproxy
+                name: opentelemetry-demo-frontend
                 port:
                   number: 8080

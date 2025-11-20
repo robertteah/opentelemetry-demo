@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: otel-demo-ingress
+  annotations:
+    # Use this annotation if you are using the NGINX Ingress Controller
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx # Ensure this matches your installed Ingress Controller name
+  rules:
+  - host: otel.local # You can use a dummy hostname or leave this out for simple IP access
+    http:
+      paths:
+      - path: /frontend
+        pathType: Prefix
+        backend:
+          service:
+            # This is the name of your LoadBalancer service
+            name: opentelemetry-demo-frontend
+            port:
+              # This is the exposed service port (8080)
+              number: 8080

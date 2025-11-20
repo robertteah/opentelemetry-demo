@@ -65,6 +65,8 @@ spec:
               value: 'opentelemetry-demo-recommendationservice:8080'
             - name: SHIPPING_SERVICE_ADDR
               value: 'opentelemetry-demo-shippingservice:8080'
+            - name: IMAGE_SERVICE_ADDR
+              value: /images
             - name: FLAGD_HOST
               value: 'opentelemetry-demo-flagd'
             - name: FLAGD_PORT
@@ -76,7 +78,7 @@ spec:
             - name: WEB_OTEL_SERVICE_NAME
               value: frontend-web
             - name: PUBLIC_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
-              value: http://localhost:8080/otlp-http/v1/traces
+              value: http://10.0.0250:8080/otlp-http/v1/traces
             - name: OTEL_RESOURCE_ATTRIBUTES
               value: service.name=$(OTEL_SERVICE_NAME),service.namespace=opentelemetry-demo,service.version=1.12.0
           resources:
