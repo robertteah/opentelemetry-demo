@@ -1,0 +1,25 @@
+name: jaeger print-initial-config
+synopsis: |
+    Prints the Collector's configuration in YAML format after all config sources are resolved and merged
+description: |
+    Note: This command prints the final yaml configuration before it is unmarshaled into config structs, which may contain sensitive values.
+usage: jaeger print-initial-config [flags]
+options:
+    - name: config
+      default_value: '[]'
+      usage: |
+        Locations to the config file(s), note that only a single location can be set per flag entry e.g. `--config=file:/path/to/first --config=file:path/to/second`.
+    - name: feature-gates
+      default_value: |
+        confighttp.framedSnappy,-confmap.enableMergeAppendOption,-connector.spanmetrics.legacyMetricNames,exporter.PersistRequestContext,-exporter.kafkaexporter.UseFranzGo,-exporter.prometheusexporter.DisableAddMetricSuffixes,-filter.filterlog.useOTTLBridge,-filter.filtermetric.useOTTLBridge,-filter.filterspan.useOTTLBridge,jaeger.es.disableLegacyId,jaeger.sampling.includeDefaultOpStrategies,-otelcol.printInitialConfig,pkg.translator.prometheus.NormalizeName,-pkg.translator.prometheus.PermissiveLabelSanitization,-processor.tailsamplingprocessor.disableinvertdecisions,-processor.tailsamplingprocessor.metricstatcountspanssampled,-processor.tailsamplingprocessor.recordpolicy,receiver.jaeger.DisableRemoteSampling,-receiver.kafkareceiver.UseFranzGo,-service.AllowNoPipelines,-service.noopTracerProvider,-service.profilesSupport,telemetry.UseLocalHostAsDefaultMetricsAddress,-telemetry.disableHighCardinalityMetrics,-telemetry.newPipelineTelemetry
+      usage: |
+        Comma-delimited list of feature gate identifiers. Prefix with '-' to disable the feature. '+' or no prefix will enable the feature.
+    - name: help
+      shorthand: h
+      default_value: "false"
+      usage: help for print-initial-config
+    - name: set
+      usage: |
+        Set arbitrary component config property. The component has to be defined in the config file and the flag has a higher precedence. Array config properties are overridden and maps are joined. Example --set=processors.batch.timeout=2s
+see_also:
+    - jaeger - Jaeger backend v2

@@ -9,18 +9,22 @@ import os
 import random
 import uuid
 import logging
+import time
+import requests
 
 from locust import HttpUser, task, between
 from locust_plugins.users.playwright import PlaywrightUser, pw, PageWithRetry, event
 
 from opentelemetry import context, baggage, trace
+from opentelemetry.propagate import inject
+from opentelemetry.trace import Status, StatusCode
 from opentelemetry.metrics import set_meter_provider
 from opentelemetry.sdk.metrics import MeterProvider
 from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
-from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.instrumentation.jinja2 import Jinja2Instrumentor
 from opentelemetry.instrumentation.requests import RequestsInstrumentor
 from opentelemetry.instrumentation.system_metrics import SystemMetricsInstrumentor
@@ -57,9 +61,16 @@ logging.getLogger().setLevel(logging.INFO)
 exporter = OTLPMetricExporter(insecure=True)
 set_meter_provider(MeterProvider([PeriodicExportingMetricReader(exporter)]))
 
-tracer_provider = TracerProvider()
+tracer_provider = TracerProvider(
+    resource=Resource.create({"service.name": "load-generator"})
+)
 trace.set_tracer_provider(tracer_provider)
-tracer_provider.add_span_processor(BatchSpanProcessor(OTLPSpanExporter()))
+tracer_provider.add_span_processor(
+    BatchSpanProcessor(
+        OTLPSpanExporter(endpoint="http://otel-collector:4318/v1/traces")
+    )
+)
+tracer = trace.get_tracer(__name__)
 
 # Instrumenting manually to avoid error with locust gevent monkey
 Jinja2Instrumentor().instrument()
@@ -106,9 +117,73 @@ people = json.load(people_file)
 class WebsiteUser(HttpUser):
     wait_time = between(1, 10)
 
+    def _traced_request(self, method: str, path: str, **kwargs):
+        base_url = self.host or os.environ.get("LOCUST_HOST", "")
+        if base_url and path.startswith("/"):
+            url = f"{base_url}{path}"
+        else:
+            url = path
+        headers = kwargs.pop("headers", {}) or {}
+        inject(headers)
+        return requests.request(method, url, headers=headers, timeout=5, **kwargs)
+
+    def run_retrieval_flow(self):
+        print("EMITTING RETRIEVAL TRACE")
+        with tracer.start_as_current_span("retrieval.request") as parent:
+            parent.set_attribute("span_type", "retrieval")
+
+            for attempt in range(1, 3):
+                with tracer.start_as_current_span("retrieval.attempt") as span:
+                    span.set_attribute("retry_attempt", attempt)
+                    span.set_attribute("span_type", "retrieval")
+                    span.set_attribute("vector_store", "pgvector")
+                    span.set_attribute("query_type", "semantic_search")
+
+                    if attempt == 1:
+                        span.set_attribute("failure_reason", "stale_context")
+                        span.set_attribute("documents_found", 0)
+                        span.set_attribute(
+                            "explanation",
+                            "Retriever returned no relevant documents",
+                        )
+                        span.record_exception(Exception("retrieval failed"))
+                        span.set_status(Status(StatusCode.ERROR))
+                    else:
+                        span.set_attribute("documents_found", 3)
+                        span.set_attribute(
+                            "explanation",
+                            "Retry returned relevant documents",
+                        )
+                        span.set_status(Status(StatusCode.OK))
+
     @task(1)
     def index(self):
         self.client.get("/")
+
+    @task(1)
+    def wow_trace(self):
+        with tracer.start_as_current_span("request.root") as root:
+            root.set_attribute("span_type", "request")
+            root.set_attribute("scenario", "retrieval_retry")
+            self.run_retrieval_flow()
+            with tracer.start_as_current_span("guardrail_check") as guardrail:
+                guardrail.set_attribute("span_type", "guardrail")
+                guardrail.set_attribute("policy", "retrieval_safety")
+                guardrail.set_status(Status(StatusCode.OK))
+            with tracer.start_as_current_span("tool_router") as tool_router:
+                tool_router.set_attribute("span_type", "tool")
+                tool_router.set_attribute("tool", "context_enricher")
+                tool_router.set_status(Status(StatusCode.OK))
+            self._traced_request(
+                "GET",
+                "/api/recommendations",
+                params={"productIds": [random.choice(products)]},
+            )
+            self._traced_request(
+                "GET",
+                "/api/data/",
+                params={"contextKeys": [random.choice(categories)]},
+            )
 
     @task(10)
     def browse_product(self):

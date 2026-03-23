@@ -88,6 +88,20 @@ install-tools: $(MISSPELL)
 build:
 	$(DOCKER_COMPOSE_CMD) build $(DOCKER_COMPOSE_BUILD_ARGS)
 
+.PHONY: demo
+demo:
+	@echo "Starting Reliai demo..."
+	$(DOCKER_COMPOSE_CMD) $(DOCKER_COMPOSE_ENV) up --build
+	@echo ""
+	@echo "Reliai demo running."
+	@echo "Dashboard: http://localhost:3000"
+
+.PHONY: reset
+reset:
+	$(DOCKER_COMPOSE_CMD) $(DOCKER_COMPOSE_ENV) down --remove-orphans --volumes
+	@echo ""
+	@echo "Reliai demo reset."
+
 .PHONY: build-and-push
 build-and-push:
 	$(DOCKER_COMPOSE_CMD) $(DOCKER_COMPOSE_ENV) build $(DOCKER_COMPOSE_BUILD_ARGS) --push

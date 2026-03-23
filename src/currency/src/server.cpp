@@ -8,7 +8,6 @@
 #include <grpc/health/v1/health.grpc.pb.h>
 
 #include "opentelemetry/trace/context.h"
-#include "opentelemetry/trace/semantic_conventions.h"
 #include "opentelemetry/trace/span_context_kv_iterable_view.h"
 #include "opentelemetry/baggage/baggage.h"
 #include "opentelemetry/nostd/string_view.h"
@@ -118,10 +117,10 @@ class CurrencyService final : public oteldemo::CurrencyService::Service
     std::string span_name = "Currency/GetSupportedCurrencies";
     auto span =
         get_tracer("currency")->StartSpan(span_name,
-                                      {{SemanticConventions::kRpcSystem, "grpc"},
-                                       {SemanticConventions::kRpcService, "oteldemo.CurrencyService"},
-                                       {SemanticConventions::kRpcMethod, "GetSupportedCurrencies"},
-                                       {SemanticConventions::kRpcGrpcStatusCode, 0}},
+                                      {{"rpc.system", "grpc"},
+                                       {"rpc.service", "oteldemo.CurrencyService"},
+                                       {"rpc.method", "GetSupportedCurrencies"},
+                                       {"rpc.grpc.status_code", 0}},
                                       options);
     auto scope = get_tracer("currency")->WithActiveSpan(span);
 
@@ -179,10 +178,10 @@ class CurrencyService final : public oteldemo::CurrencyService::Service
     std::string span_name = "Currency/Convert";
     auto span =
         get_tracer("currency")->StartSpan(span_name,
-                                      {{SemanticConventions::kRpcSystem, "grpc"},
-                                       {SemanticConventions::kRpcService, "oteldemo.CurrencyService"},
-                                       {SemanticConventions::kRpcMethod, "Convert"},
-                                       {SemanticConventions::kRpcGrpcStatusCode, 0}},
+                                      {{"rpc.system", "grpc"},
+                                       {"rpc.service", "oteldemo.CurrencyService"},
+                                       {"rpc.method", "Convert"},
+                                       {"rpc.grpc.status_code", 0}},
                                       options);
     auto scope = get_tracer("currency")->WithActiveSpan(span);
 

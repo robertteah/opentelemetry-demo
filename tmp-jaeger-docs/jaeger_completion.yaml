@@ -1,0 +1,16 @@
+name: jaeger completion
+synopsis: Generate the autocompletion script for the specified shell
+description: |
+    Generate the autocompletion script for jaeger for the specified shell.
+    See each sub-command's help for details on how to use the generated script.
+options:
+    - name: help
+      shorthand: h
+      default_value: "false"
+      usage: help for completion
+see_also:
+    - jaeger - Jaeger backend v2
+    - jaeger completion bash - Generate the autocompletion script for bash
+    - jaeger completion fish - Generate the autocompletion script for fish
+    - jaeger completion powershell - Generate the autocompletion script for powershell
+    - jaeger completion zsh - Generate the autocompletion script for zsh

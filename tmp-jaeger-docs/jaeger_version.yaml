@@ -1,0 +1,11 @@
+name: jaeger version
+synopsis: Print the version.
+description: Print the version and build information.
+usage: jaeger version [flags]
+options:
+    - name: help
+      shorthand: h
+      default_value: "false"
+      usage: help for version
+see_also:
+    - jaeger - Jaeger backend v2

@@ -51,8 +51,8 @@ services:
     image: ${IMAGE_NAME}:${DEMO_VERSION}-ad
     container_name: ad
     build:
-      context: ./
-      dockerfile: ${AD_DOCKERFILE}
+      context: ./src/ad
+      dockerfile: Dockerfile
       cache_from:
         - ${IMAGE_NAME}:${IMAGE_VERSION}-ad
       args:
@@ -351,6 +351,7 @@ services:
       - GRAFANA_HOST
       - JAEGER_UI_PORT
       - JAEGER_HOST
+      - JAEGER_PORT
       - OTEL_COLLECTOR_HOST
       - IMAGE_PROVIDER_HOST
       - IMAGE_PROVIDER_PORT
@@ -427,7 +428,7 @@ services:
       - LOCUST_HOST
       - LOCUST_HEADLESS
       - LOCUST_AUTOSTART
-      - LOCUST_BROWSER_TRAFFIC_ENABLED=true
+      - LOCUST_BROWSER_TRAFFIC_ENABLED=false
       - OTEL_EXPORTER_OTLP_ENDPOINT
       - OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE
       - OTEL_RESOURCE_ATTRIBUTES
@@ -481,8 +482,8 @@ services:
     image: ${IMAGE_NAME}:${DEMO_VERSION}-product-catalog
     container_name: product-catalog
     build:
-      context: ./
-      dockerfile: ${PRODUCT_CATALOG_DOCKERFILE}
+      context: ./src/product-catalog
+      dockerfile: Dockerfile
       cache_from:
         - ${IMAGE_NAME}:${IMAGE_VERSION}-product-catalog
     deploy:
@@ -546,8 +547,8 @@ services:
     image: ${IMAGE_NAME}:${DEMO_VERSION}-recommendation
     container_name: recommendation
     build:
-      context: ./
-      dockerfile: ${RECOMMENDATION_DOCKERFILE}
+      context: ./src/recommendation
+      dockerfile: Dockerfile
       cache_from:
         - ${IMAGE_NAME}:${IMAGE_VERSION}-recommendation
     deploy:
@@ -788,6 +789,18 @@ services:
     logging: *logging
 
   # OpenTelemetry Collector
+  adapter:
+    build: .
+    container_name: reliai-adapter
+    restart: unless-stopped
+    ports:
+      - "8001:8001"
+    environment:
+      - RELIAI_API_URL=http://host.docker.internal:8000
+      - RELIAI_API_KEY=${RELIAI_API_KEY}
+    logging: *logging
+
+  # OpenTelemetry Collector
   otel-collector:
     image: ${COLLECTOR_CONTRIB_IMAGE}
     container_name: otel-collector
@@ -823,6 +836,7 @@ services:
       - POSTGRES_HOST
       - POSTGRES_PORT
       - POSTGRES_PASSWORD
+      - RELIAI_API_KEY
       - GOMEMLIMIT=160MiB
 
   # Prometheus

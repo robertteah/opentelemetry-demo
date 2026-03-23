@@ -1,3 +1,44 @@
+# Reliai Demo
+
+Run a production-style AI system locally and watch failures happen in real time.
+
+```bash
+make demo
+```
+
+Open http://localhost:3000
+
+## What you'll see in 60 seconds
+
+- Live trace graph across services
+- Failed LLM calls and retries
+- Incident detection triggered automatically
+- Watch a retrieval fail, retry with better context, and recover — then inspect exactly why.
+
+![Reliai control panel](./assets/control-panel.png)
+![Reliai trace graph](./assets/trace-graph.png)
+This trace shows a retrieval failure (no documents found), followed by a retry that successfully returns context.
+![Reliai incident investigation](./assets/incident.png)
+
+## Why this demo is different
+
+Most demos show static dashboards. This one generates real failures and lets you debug them live.
+
+## Works with OpenTelemetry
+
+This demo uses OpenTelemetry and a Reliai adapter, so you can plug Reliai into any OTEL system.
+
+[reliailabs/reliai-otel-adapter](https://github.com/reliailabs/reliai-otel-adapter)
+
+## Try this
+
+1. Open the dashboard.
+2. Click a trace.
+3. Find a failed span.
+4. Expand the retry chain.
+
+---
+
 **Note:** This project is a fork of `opentelemetry-demo`. Thanks to the team and contributors for opensourcing this wonderful demo project. Definitely one of the best on internet.
 
 <!-- markdownlint-disable-next-line -->

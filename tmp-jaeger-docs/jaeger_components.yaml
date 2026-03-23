@@ -1,0 +1,12 @@
+name: jaeger components
+synopsis: Outputs available components in this collector distribution
+description: |
+    Outputs available components in this collector distribution including their stability levels. The output format is not stable and can change between releases.
+usage: jaeger components [flags]
+options:
+    - name: help
+      shorthand: h
+      default_value: "false"
+      usage: help for components
+see_also:
+    - jaeger - Jaeger backend v2
